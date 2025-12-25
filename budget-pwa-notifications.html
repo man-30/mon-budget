@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#667eea">
+<link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect fill='%23667eea' width='100' height='100'/><text x='50' y='50' font-size='50' text-anchor='middle' dominant-baseline='middle' fill='white'>💰</text></svg>">
+<title>💰 Budget PRO</title>
+<style>
+:root {
+  --bg-main: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  --bg-card: #ffffff;
+  --text-primary: #1f2937;
+  --text-secondary: #6b7280;
+  --border: #e5e7eb;
+  --shadow: rgba(0,0,0,0.1);
+}
+[data-theme="dark"] {
+  --bg-main: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+  --bg-card: #1e293b;
+  --text-primary: #f1f5f9;
+  --text-secondary: #94a3b8;
+  --border: #334155;
+  --shadow: rgba(0,0,0,0.5);
+}
+* { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg-main); min-height: 100vh; padding: 10px; padding-bottom: 80px; transition: all 0.3s; }
+.header { background: var(--bg-card); border-radius: 15px; padding: 15px; margin-bottom: 15px; box-shadow: 0 4px 20px var(--shadow); color: var(--text-primary); }
+.header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+.header h1 { font-size: 1.3em; background: linear-gradient(135deg, #667eea, #764ba2); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+.theme-toggle { background: var(--bg-card); border: 2px solid var(--border); padding: 8px 12px; border-radius: 8px; font-size: 1.2em; cursor: pointer; }
+.notification-banner { position: fixed; top: 10px; left: 10px; right: 10px; background: linear-gradient(135deg, #f59e0b, #fbbf24); color: white; padding: 15px; border-radius: 12px; box-shadow: 0 4px 20px rgba(245, 158, 11, 0.5); z-index: 3000; display: none; animation: slideDown 0.3s; }
+.notification-banner.show { display: block; }
+@keyframes slideDown { from { transform: translateY(-100px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+.notification-close { position: absolute; top: 10px; right: 10px; background: rgba(255,255,255,0.3); border: none; border-radius: 50%; width: 25px; height: 25px; cursor: pointer; font-weight: bold; }
+.save-indicator { position: fixed; top: 10px; right: 10px; background: #10b981; color: white; padding: 8px 15px; border-radius: 20px; font-size: 0.8em; font-weight: 600; opacity: 0; transform: translateY(-20px); transition: all 0.3s; z-index: 2000; box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4); }
+.save-indicator.show { opacity: 1; transform: translateY(0); }
+.install-prompt { background: linear-gradient(135deg, #667eea, #764ba2); color: white; padding: 15px; border-radius: 12px; margin-bottom: 15px; display: none; }
+.install-prompt.show { display: block; }
+.currency-selector { display: flex; gap: 5px; flex-wrap: wrap; margin-top: 10px; }
+.currency-btn { padding: 6px 12px; border: 2px solid var(--border); background: var(--bg-card); color: var(--text-primary); border-radius: 8px; font-size: 0.85em; font-weight: 600; cursor: pointer; transition: all 0.3s; }
+.currency-btn.active { background: linear-gradient(135deg, #667eea, #764ba2); color: white; border-color: #667eea; }
+.notification-settings { background: var(--bg-card); border: 2px solid var(--border); padding: 15px; border-radius: 12px; margin-top: 15px; }
+.switch { position: relative; display: inline-block; width: 50px; height: 24px; }
+.switch input { opacity: 0; width: 0; height: 0; }
+.slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 24px; }
+.slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
+input:checked + .slider { background-color: #667eea; }
+input:checked + .slider:before { transform: translateX(26px); }
+.tabs { position: fixed; bottom: 0; left: 0; right: 0; background: var(--bg-card); display: grid; grid-template-columns: repeat(6, 1fr); border-top: 2px solid var(--border); z-index: 1000; padding: 8px 0; box-shadow: 0 -4px 20px var(--shadow); }
+.tab { padding: 8px 3px; border: none; background: none; cursor: pointer; font-size: 0.6em; font-weight: 600; color: var(--text-secondary); transition: all 0.3s; display: flex; flex-direction: column; align-items: center; gap: 3px; }
+.tab-icon { font-size: 1.5em; position: relative; }
+.notification-badge { position: absolute; top: -5px; right: -5px; background: #ef4444; color: white; border-radius: 50%; width: 18px; height: 18px; font-size: 0.7em; display: flex; align-items: center; justify-content: center; font-weight: bold; }
+.tab.active { color: #667eea; }
+.content { background: var(--bg-card); border-radius: 15px; padding: 15px; margin-bottom: 15px; box-shadow: 0 4px 20px var(--shadow); color: var(--text-primary); }
+.tab-content { display: none; }
+.tab-content.active { display: block; animation: fadeIn 0.3s; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+h2 { font-size: 1.3em; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 2px solid var(--border); }
+.input-group { margin-bottom: 12px; }
+.input-label { font-size: 0.85em; font-weight: 600; color: var(--text-secondary); margin-bottom: 5px; display: block; }
+input[type="text"], input[type="number"], input[type="date"] { width: 100%; padding: 12px; border: 2px solid var(--border); background: var(--bg-card); color: var(--text-primary); border-radius: 10px; font-size: 1em; transition: border 0.3s; }
+input:focus { outline: none; border-color: #667eea; }
+.card { background: var(--bg-card); border: 2px solid var(--border); padding: 15px; border-radius: 12px; margin-bottom: 12px; }
+.card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+.delete-btn { background: #ef4444; color: white; border: none; border-radius: 8px; padding: 5px 12px; font-size: 0.8em; font-weight: 600; cursor: pointer; }
+.btn { width: 100%; padding: 14px; border: none; border-radius: 12px; font-weight: 600; font-size: 1em; cursor: pointer; margin-top: 10px; transition: transform 0.2s; }
+.btn:active { transform: scale(0.95); }
+.btn-primary { background: linear-gradient(135deg, #667eea, #764ba2); color: white; }
+.btn-success { background: linear-gradient(135deg, #10b981, #34d399); color: white; }
+.btn-warning { background: linear-gradient(135deg, #f59e0b, #fbbf24); color: white; }
+.total-box { background: linear-gradient(135deg, #667eea, #764ba2); color: white; padding: 20px; border-radius: 15px; text-align: center; margin: 15px 0; }
+.total-amount { font-size: 2em; font-weight: bold; }
+.status-badge { padding: 8px 12px; border-radius: 8px; font-weight: 600; font-size: 0.85em; text-align: center; margin-top: 8px; }
+.status-ok { background: #d1fae5; color: #065f46; }
+.status-warning { background: #fee2e2; color: #991b1b; }
+.summary-card { padding: 20px; border-radius: 15px; color: white; text-align: center; margin-bottom: 12px; }
+.summary-card h3 { font-size: 1em; opacity: 0.9; margin-bottom: 8px; }
+.summary-card .value { font-size: 1.8em; font-weight: bold; }
+.card-green { background: linear-gradient(135deg, #10b981, #34d399); }
+.card-red { background: linear-gradient(135deg, #ef4444, #f87171); }
+.card-blue { background: linear-gradient(135deg, #3b82f6, #60a5fa); }
+.card-purple { background: linear-gradient(135deg, #8b5cf6, #a78bfa); }
+.alert { padding: 12px; border-radius: 10px; margin: 12px 0; font-size: 0.9em; }
+.alert-success { background: #d1fae5; color: #065f46; border-left: 4px solid #10b981; }
+.alert-info { background: #dbeafe; color: #1e40af; border-left: 4px solid #3b82f6; }
+.alert-warning { background: #fee2e2; color: #991b1b; border-left: 4px solid #ef4444; }
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.calendar { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; margin-top: 15px; }
+.calendar-header { font-weight: 600; text-align: center; padding: 10px 5px; font-size: 0.85em; background: var(--bg-card); border: 2px solid var(--border); border-radius: 8px; color: var(--text-primary); }
+.calendar-day { aspect-ratio: 1; background: var(--bg-card); border: 2px solid var(--border); border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 0.85em; position: relative; color: var(--text-primary); }
+.calendar-day.has-payment { background: linear-gradient(135deg, #fef3c7, #fde68a); border-color: #f59e0b; }
+.calendar-day.today { border-color: #667eea; border-width: 3px; font-weight: bold; }
+.calendar-day.alert { background: linear-gradient(135deg, #fee2e2, #fecaca); border-color: #ef4444; animation: pulse 2s infinite; }
+@keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+.payment-dot { width: 6px; height: 6px; background: #ef4444; border-radius: 50%; position: absolute; bottom: 3px; }
+.month-nav { display: flex; justify-content: space-between; align-items: center; padding: 15px; background: var(--bg-card); border: 2px solid var(--border); border-radius: 12px; margin-bottom: 15px; }
+.month-btn { background: #667eea; color: white; border: none; padding: 8px 15px; border-radius: 8px; font-weight: 600; cursor: pointer; }
+.progress-bar { width: 100%; height: 20px; background: #e0e0e0; border-radius: 10px; overflow: hidden; margin-top: 8px; }
+.progress-fill { height: 100%; background: linear-gradient(90deg, #10b981, #34d399); display: flex; align-items: center; justify-content: center; color: white; font-weight: 600; font-size: 0.7em; transition: width 0.5s; }
+</style>
+</head>
+<body>
+
+<div id="notificationBanner" class="notification-banner">
+  <button class="notification-close" onclick="closeNotification()">×</button>
+  <div style="font-weight: 600; margin-bottom: 5px; font-size: 1.1em;">🔔 Rappel de paiement</div>
+  <div id="notificationText"></div>
+</div>
+
+<div class="save-indicator" id="saveIndicator">✅ Sauvegardé</div>
+
+<div id="installPrompt" class="install-prompt">
+  <div style="display: flex; justify-content: space-between; align-items: center;">
+    <div>
+      <div style="font-weight: 600; margin-bottom: 5px;">📱 Installer l'application</div>
+      <div style="font-size: 0.9em; opacity: 0.9;">Accès rapide depuis ton écran d'accueil</div>
+    </div>
+    <button class="btn btn-success" onclick="installApp()" style="width: auto; padding: 10px 20px; margin: 0;">Installer</button>
+  </div>
+</div>
+
+<div class="header">
+  <div class="header-top">
+    <h1>💰 Budget PRO</h1>
+    <button class="theme-toggle" onclick="toggleTheme()">🌙</button>
+  </div>
+  <p style="font-size: 0.85em; color: var(--text-secondary); margin-bottom: 10px;">PWA • Notifications • Multi-devises</p>
+  <div class="currency-selector">
+    <button class="currency-btn active" data-currency="FCFA">FCFA</button>
+    <button class="currency-btn" data-currency="EUR">EUR €</button>
+    <button class="currency-btn" data-currency="USD">USD $</button>
+    <button class="currency-btn" data-currency="XOF">XOF</button>
+  </div>
+</div>
+
+<div id="revenus" class="tab-content active">
+  <div class="content">
+    <h2 style="color: #10b981;">💰 Revenus</h2>
+    <div id="revenusList"></div>
+    <button class="btn btn-success" onclick="addRevenu()">+ Ajouter un revenu</button>
+    <div class="total-box card-green">
+      <div style="font-size: 0.9em; opacity: 0.9; margin-bottom: 8px;">Total Revenus</div>
+      <div class="total-amount" id="totalRev">0</div>
+    </div>
+  </div>
+</div>
+
+<div id="depenses" class="tab-content">
+  <div class="content">
+    <h2 style="color: #ef4444;">📊 Dépenses</h2>
+    <h3 style="font-size: 1.1em; margin: 15px 0 10px 0; color: #3b82f6;">Dépenses Fixes</h3>
+    <div id="fixesList"></div>
+    <button class="btn btn-primary" onclick="addFixe()">+ Ajouter</button>
+    <div class="total-box card-blue" style="margin: 15px 0;">
+      <div style="font-size: 0.9em; opacity: 0.9; margin-bottom: 8px;">Total Fixes</div>
+      <div class="total-amount" id="totalFix">0</div>
+    </div>
+    <h3 style="font-size: 1.1em; margin: 15px 0 10px 0; color: #8b5cf6;">Dépenses Variables</h3>
+    <div id="varList"></div>
+    <button class="btn btn-primary" onclick="addVar()">+ Ajouter</button>
+  </div>
+</div>
+
+<div id="objectifs" class="tab-content">
+  <div class="content">
+    <h2 style="color: #f59e0b;">🎯 Objectifs</h2>
+    <div id="objList"></div>
+    <button class="btn btn-primary" onclick="addObj()">+ Ajouter un objectif</button>
+  </div>
+</div>
+
+<div id="calendrier" class="tab-content">
+  <div class="content">
+    <h2 style="color: #8b5cf6;">📅 Calendrier des Paiements</h2>
+    
+    <div class="month-nav">
+      <button class="month-btn" onclick="changeCalendarMonth(-1)">◀ Préc.</button>
+      <div style="font-weight: 600; font-size: 1.1em;" id="calendarMonth"></div>
+      <button class="month-btn" onclick="changeCalendarMonth(1)">Suiv. ▶</button>
+    </div>
+    
+    <div class="calendar">
+      <div class="calendar-header">Dim</div>
+      <div class="calendar-header">Lun</div>
+      <div class="calendar-header">Mar</div>
+      <div class="calendar-header">Mer</div>
+      <div class="calendar-header">Jeu</div>
+      <div class="calendar-header">Ven</div>
+      <div class="calendar-header">Sam</div>
+    </div>
+    <div class="calendar" id="calendarDays"></div>
+    
+    <div class="alert alert-info" style="margin-top: 15px;">
+      <strong>💡 Légende :</strong><br>
+      🟡 Jaune = Paiement à venir<br>
+      🔴 Rouge = Paiement dans 3 jours ou moins<br>
+      🔵 Bordure bleue = Aujourd'hui
+    </div>
+    
+    <div id="paymentsList" style="margin-top: 20px;"></div>
+  </div>
+</div>
+
+<div id="notifications" class="tab-content">
+  <div class="content">
+    <h2 style="color: #f59e0b;">🔔 Notifications</h2>
+    
+    <div class="notification-settings">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+        <div>
+          <div style="font-weight: 600; margin-bottom: 5px;">Activer les notifications</div>
+          <div style="font-size: 0.85em; color: var(--text-secondary);">Rappels de paiements à venir</div>
+        </div>
+        <label class="switch">
+          <input type="checkbox" id="notifToggle" onchange="toggleNotifications()">
+          <span class="slider"></span>
+        </label>
+      </div>
+    </div>
+    
+    <div class="notification-settings">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+        <div>
+          <div style="font-weight: 600; margin-bottom: 5px;">Rappel 3 jours avant</div>
+          <div style="font-size: 0.85em; color: var(--text-secondary);">Te prévenir à l'avance</div>
+        </div>
+        <label class="switch">
+          <input type="checkbox" id="reminderToggle" checked>
+          <span class="slider"></span>
+        </label>
+      </div>
+    </div>
+    
+    <div class="alert alert-info">
+      <strong>ℹ️ Comment ça marche :</strong><br>
+      • Les notifications s'affichent dans l'app<br>
+      • Tu reçois des alertes 3 jours avant chaque paiement<br>
+      • Une alerte le jour J du paiement<br>
+      • Vérifie chaque jour pour rester à jour
+    </div>
+    
+    <h3 style="font-size: 1.1em; margin: 20px 0 10px 0;">📋 Prochains paiements</h3>
+    <div id="upcomingPayments"></div>
+  </div>
+</div>
+
+<div id="resume" class="tab-content">
+  <div class="content">
+    <h2 style="color: #667eea;">📊 Résumé</h2>
+    <div class="summary-card card-green">
+      <h3>💰 Revenus</h3>
+      <div class="value" id="resRev">0</div>
+    </div>
+    <div class="summary-card card-red">
+      <h3>📊 Dépenses</h3>
+      <div class="value" id="resDep">0</div>
+    </div>
+    <div class="total-box" id="resteBox">
+      <div style="font-size: 0.9em; opacity: 0.9; margin-bottom: 8px;">💵 Reste à Vivre</div>
+      <div class="total-amount" id="reste">0</div>
+      <p id="statReste" style="margin-top: 10px; font-size: 0.9em;"></p>
+    </div>
+    <div class="grid-2">
+      <div class="summary-card card-blue">
+        <h3>📈 Taux Épargne</h3>
+        <div class="value" id="taux">0%</div>
+        <p id="eval" style="font-size: 0.85em; margin-top: 8px;"></p>
+      </div>
+      <div class="summary-card card-purple">
+        <h3>🎯 50/30/20</h3>
+        <div style="font-size: 0.75em; margin-top: 8px; text-align: left;">
+          <p>Besoins: <span id="m50">0</span></p>
+          <p>Envies: <span id="m30">0</span></p>
+          <p>Épargne: <span id="m20">0</span></p>
+        </div>
+      </div>
+    </div>
+    <div class="alert" id="conseil"></div>
+  </div>
+</div>
+
+<div class="tabs">
+  <button class="tab active" data-tab="revenus"><div class="tab-icon">💰</div><div>Revenus</div></button>
+  <button class="tab" data-tab="depenses"><div class="tab-icon">📊</div><div>Dépenses</div></button>
+  <button class="tab" data-tab="objectifs"><div class="tab-icon">🎯</div><div>Objectifs</div></button>
+  <button class="tab" data-tab="calendrier"><div class="tab-icon">📅</div><div>Calendrier</div></button>
+  <button class="tab" data-tab="notifications"><div class="tab-icon">🔔<span id="notifBadge" class="notification-badge" style="display:none;">0</span></div><div>Alertes</div></button>
+  <button class="tab" data-tab="resume"><div class="tab-icon">📋</div><div>Résumé</div></button>
+</div>
+
+<script>
+let data={revenus:[],fixes:[],vars:[],objs:[],history:[],settings:{notifications:false,reminders:true}};
+let currency='FCFA';
+let theme='light';
+let calendarMonth=new Date();
+let deferredPrompt;
+const currencies={'FCFA':{symbol:'FCFA',rate:1},'EUR':{symbol:'€',rate:0.0015},'USD':{symbol:'$',rate:0.0016},'XOF':{symbol:'XOF',rate:1}};
+
+function fmt(n){const c=currencies[currency];const v=Math.round(n*c.rate);const f=new Intl.NumberFormat('fr-FR').format(v);return currency==='EUR'||currency==='USD'?`${c.symbol}${f}`:`${f} ${c.symbol}`;}
+function fmtShort(n){const c=currencies[currency];const v=Math.round(n*c.rate);const num=v>=1000000?(v/1000000).toFixed(1)+'M':v>=1000?(v/1000).toFixed(0)+'k':v;return currency==='EUR'||currency==='USD'?`${c.symbol}${num}`:`${num}${c.symbol}`;}
+
+function toggleTheme(){theme=theme==='light'?'dark':'light';document.documentElement.setAttribute('data-theme',theme);document.querySelector('.theme-toggle').textContent=theme==='dark'?'☀️':'🌙';localStorage.setItem('theme',theme);}
+
+function showSaveIndicator(){const indicator=document.getElementById('saveIndicator');indicator.classList.add('show');setTimeout(()=>{indicator.classList.remove('show');},2000);}
+
+function toggleNotifications(){const enabled=document.getElementById('notifToggle').checked;data.settings.notifications=enabled;saveData();if(enabled){checkUpcomingPayments();}}
+
+function showNotification(text){const banner=document.getElementById('notificationBanner');document.getElementById('notificationText').textContent=text;banner.classList.add('show');setTimeout(()=>{banner.classList.remove('show');},5000);}
+
+function closeNotification(){document.getElementById('notificationBanner').classList.remove('show');}
+
+function checkUpcomingPayments(){if(!data.settings.notifications)return;const today=new Date();const todayDay=today.getDate();const reminders=document.getElementById('reminderToggle').checked;let alertCount=0;data.fixes.forEach(f=>{if(!f.date)return;const daysUntil=f.date-todayDay;if(daysUntil===0){showNotification(`🔔 Aujourd'hui: ${f.nom} - ${fmt(f.montant)}`);alertCount++;}else if(reminders&&daysUntil===3){showNotification(`⏰ Dans 3 jours: ${f.nom} - ${fmt(f.montant)}`);alertCount++;}});const badge=document.getElementById('notifBadge');if(alertCount>0){badge.textContent=alertCount;badge.style.display='flex';}else{badge.style.display='none';}}
+
+function updateUpcomingPayments(){const today=new Date();const todayDay=today.getDate();const upcoming=data.fixes.filter(f=>f.date).map(f=>{const daysUntil=f.date-todayDay;return{...f,daysUntil};}).sort((a,b)=>a.daysUntil-b.daysUntil);if(upcoming.length===0){document.getElementById('upcomingPayments').innerHTML='<div class="alert alert-info">Aucun paiement programmé</div>';return;}const html=upcoming.map(p=>{let statusClass='status-ok';let statusText='';let emoji='📅';if(p.daysUntil<0){statusText=`Il y a ${Math.abs(p.daysUntil)} jour(s)`;statusClass='status-warning';emoji='⚠️';}else if(p.daysUntil===0){statusText='Aujourd\'hui !';statusClass='status-warning';emoji='🔔';}else if(p.daysUntil<=3){statusText=`Dans ${p.daysUntil} jour(s)`;statusClass='status-warning';emoji='⏰';}else{statusText=`Dans ${p.daysUntil} jour(s)`;emoji='📅';}return`<div class="card"><div style="display:flex;justify-content:space-between;align-items:center;"><div><div style="font-weight:600;">${emoji} ${p.nom}</div><div style="font-size:0.85em;color:var(--text-secondary);">Le ${p.date} du mois</div></div><div style="text-align:right;"><div style="font-weight:600;font-size:1.1em;color:#ef4444;">${fmt(p.montant)}</div><div class="status-badge ${statusClass}" style="margin-top:5px;padding:4px 8px;">${statusText}</div></div></div></div>`}).join('');document.getElementById('upcomingPayments').innerHTML=html;}
+
+window.addEventListener('beforeinstallprompt',(e)=>{e.preventDefault();deferredPrompt=e;document.getElementById('installPrompt').classList.add('show');});
+
+function installApp(){if(deferredPrompt){deferredPrompt.prompt();deferredPrompt.userChoice.then((choiceResult)=>{if(choiceResult.outcome==='accepted'){document.getElementById('installPrompt').classList.remove('show');}deferredPrompt=null;});}else{alert('Pour installer sur iOS:\n1. Ouvre dans Safari\n2. Appuie sur le bouton Partager\n3. Sélectionne "Sur l\'écran d\'accueil"');}}
+
+document.querySelectorAll('.currency-btn').forEach(btn=>{btn.addEventListener('click',function(){document.querySelectorAll('.currency-btn').forEach(b=>b.classList.remove('active'));this.classList.add('active');currency=this.getAttribute('data-currency');localStorage.setItem('currency',currency);renderAll();});});
+
+document.querySelectorAll('.tab').forEach(btn=>{btn.addEventListener('click',function(){const tabId=this.getAttribute('data-tab');document.querySelectorAll('.tab-content').forEach(e=>e.classList.remove('active'));document.querySelectorAll('.tab').forEach(e=>e.classList.remove('active'));document.getElementById(tabId).classList.add('active');this.classList.add('active');if(tabId==='calendrier')renderCalendar();if(tabId==='notifications')updateUpcomingPayments();window.scrollTo({top:0,behavior:'smooth'});});});
+
+function addRevenu(){data.revenus.push({nom:'',montant:0});renderRevenus();saveData();}
+function addFixe(){data.fixes.push({nom:'',montant:0,date:''});renderFixes();saveData();}
+function addVar(){data.vars.push({nom:'',budget:0,spent:0});renderVars();saveData();}
+function addObj(){data.objs.push({nom:'',cible:0,epargne:0,mois:12});renderObjs();saveData();}
+
+function renderRevenus(){document.getElementById('revenusList').innerHTML=data.revenus.map((r,i)=>`<div class="card"><div class="card-header"><span style="font-weight:600;font-size:0.95em;">Revenu ${i+1}</span><button class="delete-btn" onclick="delRevenu(${i})">✕</button></div><div class="input-group"><label class="input-label">Source</label><input type="text" value="${r.nom}" oninput="data.revenus[${i}].nom=this.value;saveData()" placeholder="Ex: Salaire"></div><div class="input-group"><label class="input-label">Montant</label><input type="number" value="${r.montant}" oninput="data.revenus[${i}].montant=+this.value;calc();saveData()"></div></div>`).join('');calc();}
+
+function renderFixes(){document.getElementById('fixesList').innerHTML=data.fixes.map((f,i)=>`<div class="card"><div class="card-header"><span style="font-weight:600;font-size:0.95em;">Dépense ${i+1}</span><button class="delete-btn" onclick="delFixe(${i})">✕</button></div><div class="input-group"><label class="input-label">Nom</label><input type="text" value="${f.nom}" oninput="data.fixes[${i}].nom=this.value;saveData()" placeholder="Ex: Loyer"></div><div class="input-group"><label class="input-label">Montant</label><input type="number" value="${f.montant}" oninput="data.fixes[${i}].montant=+this.value;calc();saveData()"></div><div class="input-group"><label class="input-label">Date de paiement (jour du mois)</label><input type="number" min="1" max="31" value="${f.date}" oninput="data.fixes[${i}].date=+this.value;saveData();renderCalendar();checkUpcomingPayments()" placeholder="Ex: 5"></div></div>`).join('');calc();}
+
+function renderVars(){document.getElementById('varList').innerHTML=data.vars.map((v,i)=>{const diff=v.budget-v.spent;return`<div class="card"><div class="card-header"><span style="font-weight:600;font-size:0.95em;">Catégorie ${i+1}</span><button class="delete-btn" onclick="delVar(${i})">✕</button></div><div class="input-group"><label class="input-label">Nom</label><input type="text" value="${v.nom}" oninput="data.vars[${i}].nom=this.value;saveData()" placeholder="Ex: Alimentation"></div><div class="input-group"><label class="input-label">Budget prévu</label><input type="number" value="${v.budget}" oninput="data.vars[${i}].budget=+this.value;renderVars();saveData()"></div><div class="input-group"><label class="input-label">Déjà dépensé</label><input type="number" value="${v.spent}" oninput="data.vars[${i}].spent=+this.value;renderVars();saveData()"></div><div class="status-badge ${diff<0?'status-warning':'status-ok'}">${diff<0?'⚠️ DÉPASSEMENT: ':'✅ OK: '}${fmt(Math.abs(diff))}</div></div>`}).join('');calc();}
+
+function renderObjs(){document.getElementById('objList').innerHTML=data.objs.map((o,i)=>{const reste=o.cible-o.epargne;const parMois=reste/(o.mois||1);const prog=o.cible>0?(o.epargne/o.cible)*100:0;return`<div class="card"><div class="card-header"><span style="font-weight:600;font-size:0.95em;">Objectif ${i+1}</span><button class="delete-btn" onclick="delObj(${i})">✕</button></div><div class="input-group"><label class="input-label">Nom</label><input type="text" value="${o.nom}" oninput="data.objs[${i}].nom=this.value;saveData()" placeholder="Ex: Voyage"></div><div class="input-group"><label class="input-label">Montant cible</label><input type="number" value="${o.cible}" oninput="data.objs[${i}].cible=+this.value;renderObjs();saveData()"></div><div class="input-group"><label class="input-label">Déjà épargné</label><input type="number" value="${o.epargne}" oninput="data.objs[${i}].epargne=+this.value;renderObjs();saveData()"></div><div class="input-group"><label class="input-label">Durée (mois)</label><input type="number" value="${o.mois}" oninput="data.objs[${i}].mois=+this.value;renderObjs();saveData()"></div><div class="progress-bar"><div class="progress-fill" style="width:${Math.min(prog,100)}%;background:linear-gradient(90deg,#f59e0b,#fbbf24);">${prog.toFixed(0)}%</div></div><div style="margin-top:10px;font-size:0.85em;background:var(--bg-card);border:2px solid var(--border);padding:10px;border-radius:8px;"><div style="display:flex;justify-content:space-between;margin-bottom:5px;"><span>Par mois:</span><strong>${fmt(parMois)}</strong></div><div style="display:flex;justify-content:space-between;margin-bottom:5px;"><span>Par semaine:</span><strong>${fmt(parMois/4)}</strong></div><div style="display:flex;justify-content:space-between;"><span>Par jour:</span><strong>${fmt(parMois/30)}</strong></div></div></div>`}).join('');}
+
+function delRevenu(i){data.revenus.splice(i,1);renderRevenus();saveData();}
+function delFixe(i){data.fixes.splice(i,1);renderFixes();saveData();checkUpcomingPayments();}
+function delVar(i){data.vars.splice(i,1);renderVars();saveData();}
+function delObj(i){data.objs.splice(i,1);renderObjs();saveData();}
+
+function calc(){const rev=data.revenus.reduce((s,r)=>s+r.montant,0);const fix=data.fixes.reduce((s,f)=>s+f.montant,0);const spe=data.vars.reduce((s,v)=>s+v.spent,0);const dep=fix+spe;const res=rev-dep;const tx=rev>0?(res/rev)*100:0;document.getElementById('totalRev').textContent=fmt(rev);document.getElementById('totalFix').textContent=fmt(fix);document.getElementById('resRev').textContent=fmt(rev);document.getElementById('resDep').textContent=fmt(dep);document.getElementById('reste').textContent=fmt(res);const rb=document.getElementById('resteBox');const sr=document.getElementById('statReste');if(res>=0){sr.textContent='✅ POSITIF';rb.style.background='linear-gradient(135deg,#3b82f6,#60a5fa)';}else{sr.textContent='⚠️ ATTENTION';rb.style.background='linear-gradient(135deg,#f59e0b,#ef4444)';}document.getElementById('taux').textContent=tx.toFixed(1)+'%';document.getElementById('eval').textContent=tx>=20?'🌟 EXCELLENT':tx>=10?'👍 BIEN':tx>0?'⚠️ Moyen':'❌ Aucune';document.getElementById('m50').textContent=fmtShort(rev*0.5);document.getElementById('m30').textContent=fmtShort(rev*0.3);document.getElementById('m20').textContent=fmtShort(rev*0.2);const cn=document.getElementById('conseil');if(res<0){cn.className='alert alert-warning';cn.innerHTML='<strong>⚠️</strong> Dépenses > Revenus !';}else if(tx>=20){cn.className='alert alert-success';cn.innerHTML='<strong>🎉</strong> Excellent taux d\'épargne !';}else{cn.className='alert alert-info';cn.innerHTML='<strong>💪</strong> Vise 20% d\'épargne.';}}
+
+function changeCalendarMonth(dir){calendarMonth.setMonth(calendarMonth.getMonth()+dir);renderCalendar();}
+
+function renderCalendar(){const months=['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];document.getElementById('calendarMonth').textContent=`${months[calendarMonth.getMonth()]} ${calendarMonth.getFullYear()}`;const year=calendarMonth.getFullYear();const month=calendarMonth.getMonth();const firstDay=new Date(year,month,1).getDay();const daysInMonth=new Date(year,month+1,0).getDate();const today=new Date();const isCurrentMonth=today.getMonth()===month&&today.getFullYear()===year;const todayDay=today.getDate();let daysHtml='';for(let i=0;i<firstDay;i++){daysHtml+='<div class="calendar-day" style="opacity:0.3;"></div>';}for(let day=1;day<=daysInMonth;day++){const hasPayment=data.fixes.some(f=>f.date==day);const isToday=isCurrentMonth&&todayDay===day;const daysUntil=day-todayDay;const isAlert=isCurrentMonth&&daysUntil>=0&&daysUntil<=3&&hasPayment;daysHtml+=`<div class="calendar-day ${hasPayment?'has-payment':''} ${isToday?'today':''} ${isAlert?'alert':''}">${day}${hasPayment?'<div class="payment-dot"></div>':''}</div>`;}document.getElementById('calendarDays').innerHTML=daysHtml;const paymentsThisMonth=data.fixes.filter(f=>f.date).sort((a,b)=>a.date-b.date);if(paymentsThisMonth.length>0){document.getElementById('paymentsList').innerHTML=`<h3 style="font-size:1.1em;margin-bottom:10px;color:var(--text-primary);">📋 Paiements ce mois</h3>${paymentsThisMonth.map(f=>`<div class="card"><div style="display:flex;justify-content:space-between;align-items:center;"><div><div style="font-weight:600;">${f.nom}</div><div style="font-size:0.85em;color:var(--text-secondary);">Le ${f.date} du mois</div></div><div style="font-weight:600;font-size:1.1em;color:#ef4444;">${fmt(f.montant)}</div></div></div>`).join('')}`;}else{document.getElementById('paymentsList').innerHTML='<div class="alert alert-info">Aucun paiement programmé ce mois</div>';}}
+
+function renderAll(){renderRevenus();renderFixes();renderVars();renderObjs();calc();}
+
+function saveData(){try{localStorage.setItem('budgetPWA',JSON.stringify(data));showSaveIndicator();}catch(e){console.error('Erreur sauvegarde:',e);}}
+
+function loadData(){try{const saved=localStorage.getItem('budgetPWA');if(saved){data=JSON.parse(saved);if(!data.settings){data.settings={notifications:false,reminders:true};}}else{data.revenus=[{nom:'Salaire principal',montant:0}];data.fixes=[{nom:'Loyer',montant:0,date:1},{nom:'Électricité',montant:0,date:5}];data.vars=[{nom:'Alimentation',budget:0,spent:0},{nom:'Loisirs',budget:0,spent:0}];data.objs=[{nom:'Fonds d\'urgence',cible:0,epargne:0,mois:12}];data.history=[];data.settings={notifications:false,reminders:true};}}catch(e){console.error('Erreur chargement:',e);}}
+
+function loadSettings(){const savedCur=localStorage.getItem('currency');if(savedCur&&currencies[savedCur]){currency=savedCur;document.querySelectorAll('.currency-btn').forEach(btn=>{if(btn.getAttribute('data-currency')===currency){btn.classList.add('active');}else{btn.classList.remove('active');}});}const savedTheme=localStorage.getItem('theme');if(savedTheme){theme=savedTheme;document.documentElement.setAttribute('data-theme',theme);document.querySelector('.theme-toggle').textContent=theme==='dark'?'☀️':'🌙';}document.getElementById('notifToggle').checked=data.settings.notifications;document.getElementById('reminderToggle').checked=data.settings.reminders;}
+
+loadSettings();loadData();renderAll();renderCalendar();checkUpcomingPayments();updateUpcomingPayments();setInterval(checkUpcomingPayments,60000);
+</script>
+</body>
+</html>
